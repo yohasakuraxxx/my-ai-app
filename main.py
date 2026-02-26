@@ -6,7 +6,7 @@ app = FastAPI()
 
 @app.get("/")
 def read_root():
-    return {"message": "Hello my first ai app"}
+    return {"message": "Hello my first ai app!!"}
 
 @app.get("/time")
 def get_current_time():
