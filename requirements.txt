@@ -1,4 +1,5 @@
 fastapi
 uvicorn
 pytz
-openai
+google-genai
+python-dotenv
