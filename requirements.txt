@@ -1,5 +1,5 @@
 fastapi
 uvicorn
 pytz
-google-genai
+google-generativeai
 python-dotenv
