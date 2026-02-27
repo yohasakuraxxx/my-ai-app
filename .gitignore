@@ -1,1 +1,17 @@
 .env
+# --- Terraform関連 ---
+
+# 1. 状態記録ファイル（機密情報が含まれるため絶対NG）
+*.tfstate
+*.tfstate.*
+
+# 2. 作業用ディレクトリ（各PC固有のバイナリが入るためNG）
+.terraform/
+
+# 3. 実行時の一時ファイル
+*.tfvars
+*.tfvars.json
+.terraform.tfstate.lock.info
+
+# 4. ログファイル
+terraform.log
