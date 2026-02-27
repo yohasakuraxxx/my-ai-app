@@ -9,14 +9,20 @@ terraform {
 
 provider "azurerm" {
   features {}
-  # Cloud Shell環境では自動登録がスムーズなので、この行はなくてもOKですが念のため
+}
+
+# 0. Gemini APIキーを受け取るための変数定義
+variable "google_api_key" {
+  description = "Gemini API Key for the application"
+  type        = string
+  sensitive   = true # これを付けると、実行ログにキーが表示されなくなります
 }
 
 # 1. 共通のApp Service Plan (無料 F1 プラン)
 resource "azurerm_service_plan" "free_plan" {
   name                = "plan-gemini-free"
   location            = "Korea Central"
-  resource_group_name = "rg-my-ai-app" # ★ここを書き換えてください
+  resource_group_name = "rg-my-ai-app"
   os_type             = "Linux"
   sku_name            = "F1"
 }
@@ -25,16 +31,27 @@ resource "azurerm_service_plan" "free_plan" {
 resource "azurerm_linux_web_app" "apps" {
   for_each            = toset(["dev", "stg", "prod"])
   
-  # アプリ名は世界で重複不可なので、末尾にランダムな英数字や自分の名前を足すと確実です
   name                = "app-gemini-${each.key}-shotaro" 
   location            = "Korea Central"
-  resource_group_name = "rg-my-ai-app" # ★ここを書き換えてください
+  resource_group_name = "rg-my-ai-app"
   service_plan_id     = azurerm_service_plan.free_plan.id
 
   site_config {
     always_on = false
+    
+    
+    # ★ スタートアップコマンドを追記
+    app_command_line = "gunicorn -w 4 -k uvicorn.workers.UvicornWorker --bind=0.0.0.0:8000 app.main:app"
+
     application_stack {
       python_version = "3.11"
     }
+  }
+
+  # ★ 環境変数を追記
+  app_settings = {
+    "GOOGLE_API_KEY"                 = var.google_api_key
+    "SCM_DO_BUILD_DURING_DEPLOYMENT" = "true" # Azure側でライブラリをインストールさせる
+    "PYTHON_ENABLE_GUNICORN_MULTIWORKERS" = "true"
   }
 }
