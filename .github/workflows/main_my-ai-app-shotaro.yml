@@ -31,3 +31,4 @@ jobs:
           
           # ブランチに応じて使う合鍵を自動選択
           publish-profile: ${{ (github.ref == 'refs/heads/release' && secrets.AZURE_WEBAPP_PUBLISH_PROFILE_PROD) || (github.ref == 'refs/heads/staging' && secrets.AZURE_WEBAPP_PUBLISH_PROFILE_STG) || secrets.AZURE_WEBAPP_PUBLISH_PROFILE_DEV }}
+          package: .

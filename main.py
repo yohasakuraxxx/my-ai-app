@@ -10,7 +10,7 @@ load_dotenv()
 app = FastAPI()
 
 @app.get("/")
-def ask_ai(prompt: str = "こんにちは！AIです。何かお手伝いしましょうか？"):
+def ask_ai(prompt: str = "こんにちは！AIです。今日は何をしましょうか？"):
     try:
         genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
         model = genai.GenerativeModel("models/gemini-2.5-flash")
