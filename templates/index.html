@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Analyzer - 英文解析アプリ</title>
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --border-radius: 16px;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, var(--bg-color), #e9ecef);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 30px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 1rem;
+            resize: vertical;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-analyze {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+
+        .btn-analyze:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-clear {
+            background: #f8f9fa;
+            color: #6c757d;
+            border: 2px solid #e9ecef;
+        }
+
+        .btn-clear:hover {
+            background: #e9ecef;
+        }
+
+        .result-container {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            min-height: 200px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .result-container.empty {
+            border-style: dashed;
+            border-color: #dee2e6;
+        }
+
+        .result-container h3 {
+            color: var(--text-color);
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .result-text {
+            white-space: pre-wrap;
+            line-height: 1.6;
+            color: #495057;
+            font-size: 1rem;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-top: 20px;
+        }
+
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>English Analyzer</h1>
+            <p>英文を入力して、文型と品詞を解析</p>
+        </div>
+        
+        <div class="content">
+            <div class="input-group">
+                <label for="english-input">英文を入力してください</label>
+                <textarea id="english-input" placeholder="例: The cat sat on the mat"></textarea>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-analyze" onclick="analyzeText()">解析する</button>
+                <button class="btn-clear" onclick="clearText()">クリア</button>
+            </div>
+
+            <div id="loading" class="loading">解析中...</div>
+            <div id="error" class="error"></div>
+
+            <div class="result-container empty" id="result-container">
+                <h3>解析結果</h3>
+                <div class="result-text" id="result-text">ここに解析結果が表示されます</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function analyzeText() {
+            const input = document.getElementById('english-input').value.trim();
+            const resultContainer = document.getElementById('result-container');
+            const resultText = document.getElementById('result-text');
+            const loading = document.getElementById('loading');
+            const errorDiv = document.getElementById('error');
+
+            if (!input) {
+                alert('英文を入力してください');
+                return;
+            }
+
+            // Show loading
+            loading.style.display = 'block';
+            resultContainer.classList.add('empty');
+            errorDiv.style.display = 'none';
+
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `prompt=${encodeURIComponent(input)}`
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                resultText.textContent = data.response;
+                resultContainer.classList.remove('empty');
+            } catch (error) {
+                errorDiv.textContent = '解析中にエラーが発生しました: ' + error.message;
+                errorDiv.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        function clearText() {
+            document.getElementById('english-input').value = '';
+            document.getElementById('result-text').textContent = 'ここに解析結果が表示されます';
+            document.getElementById('result-container').classList.add('empty');
+            document.getElementById('error').style.display = 'none';
+        }
+
+        // Enter key support
+        document.getElementById('english-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                analyzeText();
+            }
+        });
+    </script>
+</body>
+</html>
